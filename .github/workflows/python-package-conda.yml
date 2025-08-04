@@ -1,0 +1,34 @@
+name: Auto Update API Data
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # প্রতি ঘন্টায় (UTC টাইম)
+  workflow_dispatch:  # ম্যানুয়ালি GitHub থেকে রান করার অপশন
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run script
+        run: python update.py
+
+      - name: Commit & Push changes
+        run: |
+          git config user.name "GitHub Action Bot"
+          git config user.email "bot@github.com"
+          git add .
+          git commit -m "Update data via GitHub Actions"
+          git push
