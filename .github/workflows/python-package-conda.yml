@@ -18,19 +18,19 @@ jobs:
         with:
           python-version: 3.x
 
-      - name: Install requirements
-        run: pip install -r requirements.txt
-        
-      - name: Unzip Protected Script
-        run: unzip -P ${{ secrets.ZIP_PASSWORD2 }} fetch_token.zip
+      - name: Install requirements (ignore error if no file)
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+      - name: Unzip Protected Script
+        run: unzip -P "${{ secrets.ZIP_PASSWORD2 }}" fetch_token.zip
 
       - name: Run token updater
         run: python fetch_token.py
 
-         - name: Delete Script After Run
+      - name: Delete Script After Run
         if: always()
-        run: rm -f fetch_token.py  # run.py
+        run: rm -f fetch_token.py
 
       - name: Commit changes
         run: |
