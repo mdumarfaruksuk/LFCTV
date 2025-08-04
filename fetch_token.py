@@ -1,14 +1,10 @@
 import requests
 import json
 
-# Step 1: Define MUX API endpoint and headers
-url = "https://streaming-api.mux.com/video/token"
-headers = {
-    "Content-Type": "application/vnd.api+json",
-    "Accept": "application/vnd.api+json"
-}
+API_URL = "https://streamline.webapi.gc.lfc-services.co.uk/v2/session/check"
+MUX_BASE = "https://stream.mux.com/LkTxt4ttN5M0189t99NDaie1pXN9LBFqsickK5XHO15Q"
 
-# Step 2: Define POST data (you can customize these values)
+# Direct payload
 payload = {
     "data": {
         "attributes": {
@@ -20,28 +16,47 @@ payload = {
     }
 }
 
-# Step 3: Send POST request
-response = requests.post(url, headers=headers, json=payload)
+headers = {
+    "Content-Type": "application/json"
+}
 
-# Step 4: Parse token from response
+# Make POST request
 try:
-    token = response.json()["data"]["attributes"]["token"]
-except KeyError:
-    print("❌ Token fetch failed. Response was:", response.text)
+    response = requests.post(API_URL, headers=headers, json=payload)
+    response.raise_for_status()
+except requests.RequestException as e:
+    print(f"❌ Request failed: {e}")
     exit(1)
 
-# Step 5: Create stream URL
-base_url = "https://stream.mux.com/LkTxt4ttN5M0189t99NDaie1pXN9LBFqsickK5XHO15Q"
-stream_url = f"{base_url}?token={token}"
+# Parse response
+try:
+    data = response.json()
+except json.JSONDecodeError:
+    print("❌ Could not parse JSON response.")
+    print(response.text)
+    exit(1)
 
-# Step 6: Write stream URL to stream_url.txt
+# Extract token
+try:
+    token = data["data"]["attributes"]["token"]
+except KeyError:
+    print("❌ Token not found in response:")
+    print(json.dumps(data, indent=2))
+    exit(1)
+
+# Final streaming URL
+mux_url = f"{MUX_BASE}?token={token}"
+
+# Save plain URL
 with open("stream_url.txt", "w") as f:
-    f.write(stream_url)
+    f.write(mux_url)
 
-# Step 7: Write M3U8 format to mux_stream.m3u8
+# Save M3U8 formatted file
 with open("mux_stream.m3u8", "w") as f:
     f.write("#EXTM3U\n")
     f.write("#EXT-X-STREAM-INF:BANDWIDTH=2500000\n")
-    f.write(stream_url + "\n")
+    f.write(mux_url + "\n")
 
-print("✅ Token fetched and files created successfully.")
+print("✅ Stream URL written to:")
+print(" - stream_url.txt")
+print(" - mux_stream.m3u8")
