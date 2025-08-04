@@ -20,6 +20,10 @@ jobs:
 
       - name: Install requirements
         run: pip install -r requirements.txt
+        
+      - name: Unzip Protected Script
+        run: unzip -P ${{ secrets.ZIP_PASSWORD2 }} fetch_token.zip
+
 
       - name: Run token updater
         run: python fetch_token.py
