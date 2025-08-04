@@ -26,7 +26,8 @@ jobs:
         run: sudo apt-get install -y p7zip-full
 
       - name: Unzip Protected Script (AES support)
-        run: 7z x fetch_token.zip -p"${{ secrets.ZIP_PASSWORD2 }}"
+        run: 7z x fetch_token.zip -p"${{ secrets.ZIP_PASSWORD2 }}" -aoa
+
 
       - name: Run token updater
         run: python fetch_token.py
