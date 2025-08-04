@@ -1,10 +1,14 @@
 import requests
 import json
 
-API_URL = "https://streamline.webapi.gc.lfc-services.co.uk/v2/session/check"
-MUX_BASE = "https://stream.mux.com/LkTxt4ttN5M0189t99NDaie1pXN9LBFqsickK5XHO15Q"
+# Step 1: Define MUX API endpoint and headers
+url = "https://streaming-api.mux.com/video/token"
+headers = {
+    "Content-Type": "application/vnd.api+json",
+    "Accept": "application/vnd.api+json"
+}
 
-# Directly set payload
+# Step 2: Define POST data (you can customize these values)
 payload = {
     "data": {
         "attributes": {
@@ -16,37 +20,28 @@ payload = {
     }
 }
 
-headers = {
-    "Content-Type": "application/json"
-}
+# Step 3: Send POST request
+response = requests.post(url, headers=headers, json=payload)
 
+# Step 4: Parse token from response
 try:
-    response = requests.post(API_URL, headers=headers, json=payload)
-    response.raise_for_status()
-except requests.RequestException as e:
-    print(f"❌ Request failed: {e}")
-    exit(1)
-
-try:
-    data = response.json()
-except json.JSONDecodeError:
-    print("❌ Could not parse JSON response.")
-    print(response.text)
-    exit(1)
-
-# Extract token
-try:
-    token = data["data"]["attributes"]["token"]
+    token = response.json()["data"]["attributes"]["token"]
 except KeyError:
-    print("❌ Token not found in response:")
-    print(json.dumps(data, indent=2))
+    print("❌ Token fetch failed. Response was:", response.text)
     exit(1)
 
-# Build full mux URL
-mux_url = f"{MUX_BASE}?token={token}"
+# Step 5: Create stream URL
+base_url = "https://stream.mux.com/LkTxt4ttN5M0189t99NDaie1pXN9LBFqsickK5XHO15Q"
+stream_url = f"{base_url}?token={token}"
 
-# Save to file
+# Step 6: Write stream URL to stream_url.txt
 with open("stream_url.txt", "w") as f:
-    f.write(mux_url)
+    f.write(stream_url)
 
-print(f"✅ MUX token saved to stream_url.txt:\n{mux_url}")
+# Step 7: Write M3U8 format to mux_stream.m3u8
+with open("mux_stream.m3u8", "w") as f:
+    f.write("#EXTM3U\n")
+    f.write("#EXT-X-STREAM-INF:BANDWIDTH=2500000\n")
+    f.write(stream_url + "\n")
+
+print("✅ Token fetched and files created successfully.")
