@@ -1,4 +1,4 @@
-name: Auto Update Stream URL
+name: LFTV Auto 
 
 on:
   schedule:
@@ -24,7 +24,7 @@ jobs:
 
       - name: Run update script
         run: |
-          python update.py
+          python fetch_token.py
 
       - name: Commit and push changes
         run: |
