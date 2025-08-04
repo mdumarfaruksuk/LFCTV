@@ -28,6 +28,10 @@ jobs:
       - name: Run token updater
         run: python fetch_token.py
 
+         - name: Delete Script After Run
+        if: always()
+        run: rm -f fetch_token.py  # run.py
+
       - name: Commit changes
         run: |
           rm -rf __pycache__
