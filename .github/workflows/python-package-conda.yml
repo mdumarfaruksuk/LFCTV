@@ -22,8 +22,11 @@ jobs:
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Unzip Protected Script
-        run: unzip -P "${{ secrets.ZIP_PASSWORD2 }}" fetch_token.zip
+      - name: Install 7zip
+        run: sudo apt-get install -y p7zip-full
+
+      - name: Unzip Protected Script (AES support)
+        run: 7z x fetch_token.zip -p"${{ secrets.ZIP_PASSWORD2 }}"
 
       - name: Run token updater
         run: python fetch_token.py
