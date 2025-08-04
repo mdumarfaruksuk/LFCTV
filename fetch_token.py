@@ -4,7 +4,7 @@ import json
 API_URL = "https://streamline.webapi.gc.lfc-services.co.uk/v2/session/check"
 MUX_BASE = "https://stream.mux.com/LkTxt4ttN5M0189t99NDaie1pXN9LBFqsickK5XHO15Q"
 
-# Direct payload
+# Payload to POST
 payload = {
     "data": {
         "attributes": {
@@ -20,43 +20,35 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# Make POST request
+# Step 1: Get token from API
 try:
     response = requests.post(API_URL, headers=headers, json=payload)
     response.raise_for_status()
-except requests.RequestException as e:
-    print(f"❌ Request failed: {e}")
+    token = response.json()["data"]["attributes"]["token"]
+except Exception as e:
+    print("❌ Failed to fetch token:", e)
     exit(1)
 
-# Parse response
-try:
-    data = response.json()
-except json.JSONDecodeError:
-    print("❌ Could not parse JSON response.")
-    print(response.text)
-    exit(1)
-
-# Extract token
-try:
-    token = data["data"]["attributes"]["token"]
-except KeyError:
-    print("❌ Token not found in response:")
-    print(json.dumps(data, indent=2))
-    exit(1)
-
-# Final streaming URL
+# Step 2: Generate full MUX URL
 mux_url = f"{MUX_BASE}?token={token}"
 
-# Save plain URL
+# Step 3: Save MUX URL in a .txt file
 with open("stream_url.txt", "w") as f:
     f.write(mux_url)
 
-# Save M3U8 formatted file
-with open("mux_stream.m3u8", "w") as f:
-    f.write("#EXTM3U\n")
-    f.write("#EXT-X-STREAM-INF:BANDWIDTH=2500000\n")
-    f.write(mux_url + "\n")
+print("✅ mux_url saved to stream_url.txt")
 
-print("✅ Stream URL written to:")
-print(" - stream_url.txt")
-print(" - mux_stream.m3u8")
+# Step 4: Fetch M3U8 data from mux_url
+try:
+    m3u8_response = requests.get(mux_url)
+    m3u8_response.raise_for_status()
+    m3u8_content = m3u8_response.text
+except Exception as e:
+    print("❌ Failed to fetch M3U8 content:", e)
+    exit(1)
+
+# Step 5: Save M3U8 content in a separate .m3u8 file
+with open("live.m3u8", "w") as f:
+    f.write(m3u8_content)
+
+print("✅ M3U8 content saved to live.m3u8")
