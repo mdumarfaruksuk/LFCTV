@@ -2,7 +2,7 @@ name: Auto Update MUX Token
 
 on:
   schedule:
-    - cron: '0 * * * *'  # প্রতি ঘন্টায়
+    - cron: '0/5 * * * *'  # প্রতি ঘন্টায়
   workflow_dispatch:
 
 jobs:
